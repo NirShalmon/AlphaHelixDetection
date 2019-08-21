@@ -30,8 +30,8 @@ for filename in os.listdir(protein_dir):
 	protein_path = os.path.join(protein_dir,filename) 
 
 	rc('open ' + protein_path) #open protein file
-	rc('molmap #0 4 grid 2 model #1') #generate electron density map
+	rc('molmap #0 ' + str(resolution) + ' grid 1 model #1') #generate electron density map
 	rc('volume #1 save ' + os.path.join(output_dir,protein_name+'.mrc')) #save that map
-	rc('molmap helix 4 grid 2 model #2 onGrid #1') #generate heix data, with the same grid size
+	rc('molmap helix ' + str(resolution) + ' grid 1 model #2 onGrid #1') #generate heix data, with the same grid size
 	rc('volume #2 save ' + os.path.join(output_dir,protein_name+'_helix.mrc')) #save the helix data
 	rc('close all') #
