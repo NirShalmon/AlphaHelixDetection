@@ -1,0 +1,36 @@
+false positives:0
+false negatives:403
+true positives:0
+true negatives:32365
+No true positives
+
+false positives:0
+false negatives:635
+true positives:0
+true negatives:32133
+No true positives
+
+false positives:0
+false negatives:1559
+true positives:0
+true negatives:31209
+No true positives
+
+false positives:0
+false negatives:1491
+true positives:0
+true negatives:31277
+No true positives
+
+false positives:0
+false negatives:604
+true positives:0
+true negatives:32164
+No true positives
+
+false positives:0
+false negatives:2359
+true positives:0
+true negatives:30409
+No true positives
+

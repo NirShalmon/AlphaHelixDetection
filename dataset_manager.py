@@ -1,5 +1,5 @@
 import mrcfile, os, numpy
-
+import random
 
 def read_mrc(path):
     file = mrcfile.open(path)
@@ -52,7 +52,7 @@ def get_cube(protein_map, size,i,j,k):
     return cube
 
 
-def get_dataset(protein_path='/home/nir/workshop/raw_data'):
+def get_dataset(protein_path):
     for filename in os.listdir(protein_path):
         if not filename.endswith('_helix.mrc'):
             continue
@@ -66,3 +66,8 @@ def get_dataset(protein_path='/home/nir/workshop/raw_data'):
             for j in range(0,max(1, sz[1] - 32),16):
                 for k in range(0,max(1, sz[2] - 32),16):
                     yield (get_cube(protein_map, 32,i,j,k), get_cube(helix_map, 32,i,j,k))
+
+
+def split_to_training_and_validation_sets(dataset):
+    random.shuffle(dataset)
+    return dataset[:len(dataset)*7//10], dataset[len(dataset)*7//10:]
