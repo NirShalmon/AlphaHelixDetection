@@ -52,10 +52,14 @@ def get_cube(protein_map, size,i,j,k):
     return cube
 
 
-def get_dataset(protein_path):
+def get_dataset(protein_path, max_protein_amount=-1):
+    protein_number = 0
     for filename in os.listdir(protein_path):
         if not filename.endswith('_helix.mrc'):
             continue
+        protein_number += 1
+        if max_protein_amount != -1 and protein_number > max_protein_amount:
+            break
         protein_name = filename[:filename.index('_')]
         protein_map = read_mrc(os.path.join(protein_path, protein_name + '.mrc'))
         helix_map = read_mrc(os.path.join(protein_path, filename))

@@ -248,10 +248,11 @@ def evaluate(net, validation_set, save_to=''):
         else:
             print_and_write_to_file("recall: " + str(tp / (tp + fn)) + ", precision: " + str(tp / (tp + fp)), file)
         print_and_write_to_file('', file)
-    print_and_write_to_file('total false positives: ' + str(fp_total))
-    print_and_write_to_file('total false negatives: ' + str(fn_total))
-    print_and_write_to_file('total true positives: ' + str(tp_total))
-    print_and_write_to_file('total true negatives: ' + str(tn_total))
+    print_and_write_to_file('total false positives: ' + str(fp_total),file)
+    print_and_write_to_file('total false negatives: ' + str(fn_total),file)
+    print_and_write_to_file('total true positives: ' + str(tp_total),file)
+    print_and_write_to_file('total true negatives: ' + str(tn_total),file)
+    print_and_write_to_file("recall: " + str(tp / (tp_total + fn_total)) + ", precision: " + str(tp_total / (tp_total + fp_total)), file)
     if save_to:
         file.close()
     return {'fp': fp_total, 'fn': fn_total, 'tp': tp_total, 'tn': tn_total}

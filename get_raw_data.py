@@ -14,7 +14,7 @@ if '--help' in sys.argv:
 if len(sys.argv) != 4:
     raise Exception('Bad parameters. use --help')
 
-resolution = 4 #in angstram. chimera allows only 2 parameters
+resolution = int(sys.argv[1])
 
 protein_dir = os.path.join(os.getcwd(),sys.argv[2])
 output_dir = os.path.join(os.getcwd(),sys.argv[3])
@@ -26,7 +26,6 @@ except:
     pass
 
 
-#raise Exception(os.path.join(os.getcwd(), protein_dir))
 # process all pdb files using chimera
 for root, dirs, files in os.walk(protein_dir):
     for filename in files:
@@ -37,7 +36,6 @@ for root, dirs, files in os.walk(protein_dir):
 
         rc('open ' + protein_path)  # open protein file
         rc('molmap #0 ' + str(resolution) + ' grid 1 model #1')  # generate electron density map
-        #raise Exception(os.path.join(output_dir, protein_name + '.mrc'))
         rc('volume #1 save ' + os.path.join(output_dir, protein_name + '.mrc'))  # save that map
         rc('molmap helix ' + str(resolution) + ' grid 1 model #2 onGrid #1')#generate heix data, with the same grid size
         rc('volume #2 save ' + os.path.join(output_dir, protein_name + '_helix.mrc'))  # save the helix data
