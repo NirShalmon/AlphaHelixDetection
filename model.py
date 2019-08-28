@@ -7,6 +7,7 @@ import dataset_manager
 import random
 import numpy
 
+
 def conv_block_3d(in_dim, out_dim, activation):
     return nn.Sequential(
         nn.Conv3d(in_dim, out_dim, kernel_size=3, stride=1, padding=1),
@@ -123,8 +124,6 @@ def get_5d_tensor(data):
         for j in range(32):
             for k in range(32):
                 output[0][0][i][j][k] = data[i][j][k]
-                #output[0][1][i][j][k] = data[i][j][k]
-                #output[0][2][i][j][k] = data[i][j][k]
     return output
 
 
@@ -168,59 +167,95 @@ def get_true_positives(output, label):
     return counter
 
 
-def train_net(dataset):
+def run_net_on_patch(net, patch_data):
+    patch_tensor = get_5d_tensor(patch_data)
+    label_tensor = net(patch_tensor)
+    return label_tensor[0, 0, :, :, :].detach().numpy()
+
+
+def train_net(training_set, epochs=1, learning_rate=0.01):
     net = UNet(in_dim=1, out_dim=1, num_filters=4)
     criterion = nn.KLDivLoss()
     # create your optimizer
-    optimizer = optim.SGD(net.parameters(), lr=0.01)
+    optimizer = optim.SGD(net.parameters(), lr=learning_rate)
+    for epoch in range(epochs):
+        print(f'Epoch {epoch}')
+        print('Shuffeling dataset')
+        random.shuffle(training_set)
+        step_number = 0
+        for data, label in training_set:
+            optimizer.zero_grad()  # zero the gradient buffers
 
-    for data, label in dataset:
-        optimizer.zero_grad()  # zero the gradient buffers
+            data_tensor = get_5d_tensor(data)
+            label_tensor = get_5d_tensor(label)
+            output = net(data_tensor)
 
-        data_tensor = get_5d_tensor(data)
-        label_tensor = get_5d_tensor(label)
-        output = net(data_tensor)
-
-        loss = criterion(output, label_tensor)
-        #loss = -1 * torch.sum(label_tensor * output)  # the crossentropy formula is -1 * sum( log(output_dist) * target_dist)
-        loss.backward()
-        print(loss)
-        optimizer.step()  # Does the update
-        print('step completed')
+            loss = criterion(output, label_tensor)
+            # loss = -1 * torch.sum(label_tensor * output)  # the crossentropy formula is -1 * sum( log(output_dist) * target_dist)
+            loss.backward()
+            optimizer.step()  # Does the update
+            print(f'step {step_number} out of {len(training_set)} of epoch {epoch} completed. loss: {loss}')
+            step_number += 1
     return net
 
 
 def save_net(net, path):
-    torch.save(net.state_dict(),path)
+    torch.save(net.state_dict(), path)
 
 
 def load_net(path):
     net = UNet(in_dim=1, out_dim=1, num_filters=4)
-    state_dict = torch.load(path)
-    for key, value in state_dict.items():
-        net.state_dict()[key] = value
+    net.load_state_dict(torch.load(path))
+    net.eval()
     return net
 
 
-def evaluate(net, dataset):
+def print_and_write_to_file(str, file):
+    print(str)
+    if file:
+        print(str, file=file)
+
+
+def evaluate(net, validation_set, save_to=''):
     print('evaluation:')
-    for i in range(20):
-        output_f_tensor = net(get_5d_tensor(dataset[i][0]))
+    fp_total = 0
+    fn_total = 0
+    tp_total = 0
+    tn_total = 0
+    net.eval()  # set to evaluation mode
+    if save_to:
+        file = open(save_to, "w+")
+    else:
+        file = None
+    for data, label in validation_set:
+        output_f_tensor = net(get_5d_tensor(data))
         output_array = output_f_tensor[0, 0, :, :, :]
-        label_array = dataset[i][1]
+        label_array = label
         fp = get_false_positives(output_array, label_array)
+        fp_total += fp
         fn = get_false_negatives(output_array, label_array)
+        fn_total += fn
         tp = get_true_positives(output_array, label_array)
+        tp_total += tp
         tn = get_true_negatives(output_array, label_array)
-        print('false positives:' + str(fp))
-        print('false negatives:' + str(fn))
-        print('true positives:' + str(tp))
-        print('true negatives:' + str(tn))
+        tn_total += tn
+        print_and_write_to_file('false positives:' + str(fp), file)
+        print_and_write_to_file('false negatives:' + str(fn), file)
+        print_and_write_to_file('true positives:' + str(tp), file)
+        print_and_write_to_file('true negatives:' + str(tn), file)
         if tp == 0:
-            print(0)
+            print_and_write_to_file("No true positives", file)
         else:
-            print("recall: " + str(tp/(tp+fn)) +", precision: " + str(tp/(tp+fp)))
-        print()
+            print_and_write_to_file("recall: " + str(tp / (tp + fn)) + ", precision: " + str(tp / (tp + fp)), file)
+        print_and_write_to_file('', file)
+    print_and_write_to_file('total false positives: ' + str(fp_total))
+    print_and_write_to_file('total false negatives: ' + str(fn_total))
+    print_and_write_to_file('total true positives: ' + str(tp_total))
+    print_and_write_to_file('total true negatives: ' + str(tn_total))
+    if save_to:
+        file.close()
+    return {'fp': fp_total, 'fn': fn_total, 'tp': tp_total, 'tn': tn_total}
+
 
 if __name__ == "__main__":
     '''
@@ -229,14 +264,9 @@ if __name__ == "__main__":
     '''
     print('getting dataset')
     dataset = list(dataset_manager.get_dataset())
-    random.shuffle(dataset)
+    dataset = dataset[:20]
+    training_set, validation_set = dataset_manager.split_to_training_and_validation_sets(dataset)
+    net = train_net(training_set, epochs=0, learning_rate=0.01)
+    print(evaluate(net, validation_set))
 
-    net = train_net(dataset)
-    save_net(net,'net.pt')
-    evaluate(net,dataset)
-
-
-
-
-
-    #dataset_manager.save_mrc(output_f_tensor[0,0,:,:30,:26].detach().numpy(), 'output_test.mrc'
+    # dataset_manager.save_mrc(output_f_tensor[0,0,:,:30,:26].detach().numpy(), 'output_test.mrc'
