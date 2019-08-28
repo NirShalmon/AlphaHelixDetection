@@ -15,9 +15,9 @@ if '-train' in sys.argv:
     if len(sys.argv) != 4 and len(sys.argv) != 5:
         print('-train requires 4 arguments. run python helix_predictor_UI.py --help')
         exit()
-    dataset = list(dataset_manager.get_dataset(sys.argv[3],max_protein_amount=20))
+    dataset = list(dataset_manager.get_dataset(sys.argv[3],max_protein_amount=100))
     training_set, validation_set = dataset_manager.split_to_training_and_validation_sets(dataset)
-    net = model.train_net(training_set, epochs=1, learning_rate=0.01)
+    net = model.train_net(training_set, epochs=1, learning_rate=0.005)
     model.save_net(net, sys.argv[2])
     if len(sys.argv) == 5:
         #evaluation is requested

@@ -255,7 +255,16 @@ def evaluate(net, validation_set, save_to=''):
     print_and_write_to_file("recall: " + str(tp / (tp_total + fn_total)) + ", precision: " + str(tp_total / (tp_total + fp_total)), file)
     if save_to:
         file.close()
-    return {'fp': fp_total, 'fn': fn_total, 'tp': tp_total, 'tn': tn_total}
+    if tp_total == 0:
+        precision = 0
+        recall = 0
+    else:
+        precision = tp_total/(tp_total + fp_total)
+        recall = tp_total/(tp_total + fn_total)
+    specifisity = tn_total/(tn_total + fp_total)
+    accuracy = (tp_total+tn_total)/(tp_total+tn_total+fp_total+fn_total)
+    return {'fp': fp_total, 'fn': fn_total, 'tp': tp_total, 'tn': tn_total,
+            'precision': precision, 'recall': recall, 'specifisity': specifisity, 'accuracy': accuracy}
 
 
 if __name__ == "__main__":
