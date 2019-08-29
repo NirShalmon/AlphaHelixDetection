@@ -1,6 +1,7 @@
 import mrcfile, os, numpy
 import random
 
+
 def read_mrc(path):
     file = mrcfile.open(path)
     data = file.data.tolist()
@@ -10,7 +11,7 @@ def read_mrc(path):
 
 def save_mrc(data, path):
     file = mrcfile.new(path, overwrite=True)
-    #print(data[0][0][0])
+    # print(data[0][0][0])
     file.set_data(data)
     file.close()
 
@@ -37,18 +38,18 @@ def apply_cutoff(protein_map, cutoff):
                     protein_map[i][j][k] = 0
 
 
-def get_cube(protein_map, size,i,j,k):
+def get_cube(protein_map, size, i, j, k):
     '''
     returns a size*size*size list of values from map, starting from map[i][j][k]
     pads with zeroes if neccesary
     '''
     cube = [[[0 for j in range(size)] for i in range(size)] for k in range(size)]
     map_size = dimentions(protein_map)
-    for ii in range(i,size+i):
-        for jj in range(j,size+j):
-            for kk in range(k,size+k):
+    for ii in range(i, size + i):
+        for jj in range(j, size + j):
+            for kk in range(k, size + k):
                 if ii < map_size[0] and jj < map_size[1] and kk < map_size[2]:
-                    cube[ii-i][jj-j][kk-k] = protein_map[ii][jj][kk]
+                    cube[ii - i][jj - j][kk - k] = protein_map[ii][jj][kk]
     return cube
 
 
@@ -66,12 +67,12 @@ def get_dataset(protein_path, max_protein_amount=-1):
         apply_cutoff(helix_map, 0.25)
         sz = dimentions(protein_map)
         print(sz)
-        for i in range(0,max(1,sz[0]-32),16):
-            for j in range(0,max(1, sz[1] - 32),16):
-                for k in range(0,max(1, sz[2] - 32),16):
-                    yield (get_cube(protein_map, 32,i,j,k), get_cube(helix_map, 32,i,j,k))
+        for i in range(0, max(1, sz[0] - 32), 16):
+            for j in range(0, max(1, sz[1] - 32), 16):
+                for k in range(0, max(1, sz[2] - 32), 16):
+                    yield (get_cube(protein_map, 32, i, j, k), get_cube(helix_map, 32, i, j, k))
 
 
-def split_to_training_and_validation_sets(dataset):
+def split_training_validation_sets(dataset):
     random.shuffle(dataset)
-    return dataset[:len(dataset)*7//10], dataset[len(dataset)*7//10:]
+    return dataset[:len(dataset) * 7 // 10], dataset[len(dataset) * 7 // 10:]
