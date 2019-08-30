@@ -1,4 +1,5 @@
 false positives:0
+<<<<<<< HEAD
 false negatives:0
 true positives:0
 true negatives:32768
@@ -268,12 +269,20 @@ true positives:10580
 true negatives:17014
 recall: 0.9670932358318098, precision: 0.6872807587371703
 
+=======
+false negatives:403
+true positives:0
+true negatives:32365
+No true positives
+
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
 false positives:0
 false negatives:635
 true positives:0
 true negatives:32133
 No true positives
 
+<<<<<<< HEAD
 false positives:1423
 false negatives:54
 true positives:1246
@@ -448,6 +457,14 @@ true positives:5790
 true negatives:24926
 recall: 0.9732728189611699, precision: 0.7536118703631394
 
+=======
+false positives:0
+false negatives:1559
+true positives:0
+true negatives:31209
+No true positives
+
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
 false positives:0
 false negatives:1491
 true positives:0
@@ -455,6 +472,7 @@ true negatives:31277
 No true positives
 
 false positives:0
+<<<<<<< HEAD
 false negatives:0
 true positives:0
 true negatives:32768
@@ -1821,3 +1839,16 @@ total false negatives: 267370
 total true positives: 416334
 total true negatives: 8945608
 recall: 0.0016981032727613119, precision: 0.5816946708656665
+=======
+false negatives:604
+true positives:0
+true negatives:32164
+No true positives
+
+false positives:0
+false negatives:2359
+true positives:0
+true negatives:30409
+No true positives
+
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142

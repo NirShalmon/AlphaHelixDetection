@@ -161,6 +161,35 @@ def run_net_on_patch(net, patch_data):
     patch_tensor = get_5d_tensor(patch_data)
     label_tensor = net(patch_tensor)
     return label_tensor[0, 0, :, :, :].detach().numpy()
+<<<<<<< HEAD
+=======
+
+
+def train_net(training_set, epochs=1, learning_rate=0.01):
+    net = UNet(in_dim=1, out_dim=1, num_filters=4)
+    criterion = nn.KLDivLoss()
+    # create your optimizer
+    optimizer = optim.SGD(net.parameters(), lr=learning_rate)
+    for epoch in range(epochs):
+        print(f'Epoch {epoch}')
+        print('Shuffeling dataset')
+        random.shuffle(training_set)
+        step_number = 0
+        for data, label in training_set:
+            optimizer.zero_grad()  # zero the gradient buffers
+
+            data_tensor = get_5d_tensor(data)
+            label_tensor = get_5d_tensor(label)
+            output = net(data_tensor)
+
+            loss = criterion(output, label_tensor)
+            # loss = -1 * torch.sum(label_tensor * output)  # the crossentropy formula is -1 * sum( log(output_dist) * target_dist)
+            loss.backward()
+            optimizer.step()  # Does the update
+            print(f'step {step_number} out of {len(training_set)} of epoch {epoch} completed. loss: {loss}')
+            step_number += 1
+    return net
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
 
 
 def save_net(net, path):
@@ -168,16 +197,27 @@ def save_net(net, path):
 
 
 def load_net(path):
+<<<<<<< HEAD
     net = UNet(in_dim=1, out_dim=1, num_filters=8)
+=======
+    net = UNet(in_dim=1, out_dim=1, num_filters=4)
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
     net.load_state_dict(torch.load(path))
     net.eval()
     return net
 
 
+<<<<<<< HEAD
 def print_and_write_to_file(text, file):
     print(text)
     if file:
         print(text, file=file)
+=======
+def print_and_write_to_file(str, file):
+    print(str)
+    if file:
+        print(str, file=file)
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
 
 
 def evaluate(net, validation_set, save_to=''):
@@ -194,6 +234,7 @@ def evaluate(net, validation_set, save_to=''):
     for data, label in validation_set:
         output_f_tensor = net(get_5d_tensor(data))
         output_array = output_f_tensor[0, 0, :, :, :]
+<<<<<<< HEAD
         fp = get_false_positives(output_array, label)
         fp_total += fp
         fn = get_false_negatives(output_array, label)
@@ -201,6 +242,16 @@ def evaluate(net, validation_set, save_to=''):
         tp = get_true_positives(output_array, label)
         tp_total += tp
         tn = get_true_negatives(output_array, label)
+=======
+        label_array = label
+        fp = get_false_positives(output_array, label_array)
+        fp_total += fp
+        fn = get_false_negatives(output_array, label_array)
+        fn_total += fn
+        tp = get_true_positives(output_array, label_array)
+        tp_total += tp
+        tn = get_true_negatives(output_array, label_array)
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
         tn_total += tn
         print_and_write_to_file('false positives:' + str(fp), file)
         print_and_write_to_file('false negatives:' + str(fn), file)
@@ -211,6 +262,7 @@ def evaluate(net, validation_set, save_to=''):
         else:
             print_and_write_to_file("recall: " + str(tp / (tp + fn)) + ", precision: " + str(tp / (tp + fp)), file)
         print_and_write_to_file('', file)
+<<<<<<< HEAD
     print_and_write_to_file('total false positives: ' + str(fp_total),file)
     print_and_write_to_file('total false negatives: ' + str(fn_total),file)
     print_and_write_to_file('total true positives: ' + str(tp_total),file)
@@ -252,6 +304,15 @@ def train_net(training_set, epochs=1, learning_rate=0.01):
             print(f'step {step_number} out of {len(training_set)} of epoch {epoch} completed. loss: {loss}')
             step_number += 1
     return net
+=======
+    print_and_write_to_file('total false positives: ' + str(fp_total))
+    print_and_write_to_file('total false negatives: ' + str(fn_total))
+    print_and_write_to_file('total true positives: ' + str(tp_total))
+    print_and_write_to_file('total true negatives: ' + str(tn_total))
+    if save_to:
+        file.close()
+    return {'fp': fp_total, 'fn': fn_total, 'tp': tp_total, 'tn': tn_total}
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
 
 
 if __name__ == "__main__":
@@ -261,8 +322,15 @@ if __name__ == "__main__":
     print('getting dataset')
     dataset = list(dataset_manager.get_dataset())
     dataset = dataset[:20]
+<<<<<<< HEAD
     training_set, validation_set = dataset_manager.split_training_validation_sets(dataset)
     net = train_net(training_set, epochs=0, learning_rate=0.01)
     print(evaluate(net, validation_set))
 '''
+=======
+    training_set, validation_set = dataset_manager.split_to_training_and_validation_sets(dataset)
+    net = train_net(training_set, epochs=0, learning_rate=0.01)
+    print(evaluate(net, validation_set))
+
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
     # dataset_manager.save_mrc(output_f_tensor[0,0,:,:30,:26].detach().numpy(), 'output_test.mrc'

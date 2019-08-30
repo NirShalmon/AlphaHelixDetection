@@ -1,6 +1,9 @@
 import mrcfile, os, numpy
 import random
+<<<<<<< HEAD
 
+=======
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
 
 def read_mrc(path):
     file = mrcfile.open(path)
@@ -53,8 +56,12 @@ def get_cube(protein_map, size, i, j, k):
     return cube
 
 
+<<<<<<< HEAD
 def get_dataset(protein_path, max_protein_amount=-1):
     protein_number = 0
+=======
+def get_dataset(protein_path):
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
     for filename in os.listdir(protein_path):
         if not filename.endswith('_helix.mrc'):
             continue
@@ -67,6 +74,7 @@ def get_dataset(protein_path, max_protein_amount=-1):
         apply_cutoff(helix_map, 0.25)
         sz = dimentions(protein_map)
         print(sz)
+<<<<<<< HEAD
         for i in range(0, max(1, sz[0] - 32), 16):
             for j in range(0, max(1, sz[1] - 32), 16):
                 for k in range(0, max(1, sz[2] - 32), 16):
@@ -76,3 +84,14 @@ def get_dataset(protein_path, max_protein_amount=-1):
 def split_training_validation_sets(dataset):
     random.shuffle(dataset)
     return dataset[:len(dataset) * 7 // 10], dataset[len(dataset) * 7 // 10:]
+=======
+        for i in range(0,max(1,sz[0]-32),16):
+            for j in range(0,max(1, sz[1] - 32),16):
+                for k in range(0,max(1, sz[2] - 32),16):
+                    yield (get_cube(protein_map, 32,i,j,k), get_cube(helix_map, 32,i,j,k))
+
+
+def split_to_training_and_validation_sets(dataset):
+    random.shuffle(dataset)
+    return dataset[:len(dataset)*7//10], dataset[len(dataset)*7//10:]
+>>>>>>> 450a237db2bb030b438e52ce39994c98d6f36142
