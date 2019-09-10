@@ -1,11 +1,11 @@
-# 3D-UNet model.
+"""
+Contains the convolutional neural net model and functions to train, evaluate, load and save the model.
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import dataset_manager
 import random
-import numpy
-
 
 def conv_block_3d(in_dim, out_dim, activation):
     return nn.Sequential(
@@ -107,56 +107,42 @@ class UNet(nn.Module):
         out = self.out(up_4)  # -> [1, 3, 128, 128, 128]
         return out
 
-
+"""
+1-liner to turn a numpy array into a 5D tensor of dimensions 1,1,32,32,32
+:param data: a numpy array
+:return: 5D tensor of the input data
+"""
 def get_5d_tensor(data):
-    output = torch.empty(1, 1, 32, 32, 32)
-    for i in range(32):
-        for j in range(32):
-            for k in range(32):
-                output[0][0][i][j][k] = data[i][j][k]
-    return output
+    return torch.Tensor(data).resize_(1,1,32,32,32) 
 
-
-def get_false_positives(output, label):
-    counter = 0
-    for i in range(32):
-        for j in range(32):
-            for k in range(32):
-                if output[i][j][k] > 0.5 and label[i][j][k] == 0:
-                    counter += 1
-    return counter
-
-
-def get_false_negatives(output, label):
-    counter = 0
-    for i in range(32):
-        for j in range(32):
-            for k in range(32):
-                if output[i][j][k] < 0.5 and label[i][j][k] == 1:
-                    counter += 1
-    return counter
-
-
-def get_true_negatives(output, label):
-    counter = 0
-    for i in range(32):
-        for j in range(32):
-            for k in range(32):
-                if output[i][j][k] < 0.5 and label[i][j][k] == 0:
-                    counter += 1
-    return counter
-
-
-def get_true_positives(output, label):
-    counter = 0
+"""
+Calculates a confusion matrix (False Positive (FP), True Positive(TP)
+False Negative(FN), True Negative(TN)) given a probability map and its corresponding label
+:param output: a 3D probability map
+:param label: a 3D mask/label
+:return fp,tp,tn,tf as explained above
+"""
+def get_stats(output, label):
+    fp = 0
+    tp = 0
+    tn = 0
+    fn = 0
     for i in range(32):
         for j in range(32):
             for k in range(32):
                 if output[i][j][k] > 0.5 and label[i][j][k] == 1:
-                    counter += 1
-    return counter
+                    tp += 1
+                elif output[i][j][k] > 0.5 and label[i][j][k] == 0:
+                    fp += 1
+                elif output[i][j][k] <= 0.5 and label[i][j][k] == 1:
+                    fn += 1
+                else:
+                    tn += 1
+    return fp,tp,tn,fn
 
+"""
 
+"""
 def run_net_on_patch(net, patch_data):
     patch_tensor = get_5d_tensor(patch_data)
     label_tensor = net(patch_tensor)
@@ -164,8 +150,9 @@ def run_net_on_patch(net, patch_data):
 
 
 def train_net(training_set, epochs=1, learning_rate=0.01):
-    net = UNet(in_dim=1, out_dim=1, num_filters=4)
-    criterion = nn.KLDivLoss()
+    net = UNet(in_dim=1, out_dim=1, num_filters=8)
+    net.to('cuda')
+    criterion = nn.L1Loss().to('cuda')
     # create your optimizer
     optimizer = optim.SGD(net.parameters(), lr=learning_rate)
     for epoch in range(epochs):
@@ -173,28 +160,37 @@ def train_net(training_set, epochs=1, learning_rate=0.01):
         print('Shuffeling dataset')
         random.shuffle(training_set)
         step_number = 0
-        for data, label in training_set:
+        for label,data in training_set:
             optimizer.zero_grad()  # zero the gradient buffers
 
-            data_tensor = get_5d_tensor(data)
-            label_tensor = get_5d_tensor(label)
+            data_tensor = get_5d_tensor(data).to('cuda')
+            label_tensor = get_5d_tensor(label).to('cuda')
             output = net(data_tensor)
-
             loss = criterion(output, label_tensor)
             # loss = -1 * torch.sum(label_tensor * output)  # the crossentropy formula is -1 * sum( log(output_dist) * target_dist)
             loss.backward()
             optimizer.step()  # Does the update
-            print(f'step {step_number} out of {len(training_set)} of epoch {epoch} completed. loss: {loss}')
+            '''print(f'step {step_number} out of {len(training_set)} of epoch {epoch} completed. loss: {loss}')'''
             step_number += 1
     return net
 
-
+"""
+Saves the net in the desired path
+:param net: the trained net
+:param path: the path where the trained net will be saved at
+:return
+"""
 def save_net(net, path):
     torch.save(net.state_dict(), path)
 
-
+"""
+Loads a net from the desired path
+:param path: the path of the net
+:return net: the loaded net
+"""
 def load_net(path):
     net = UNet(in_dim=1, out_dim=1, num_filters=8)
+    net.to('cuda')
     net.load_state_dict(torch.load(path))
     net.eval()
     return net
@@ -205,7 +201,15 @@ def print_and_write_to_file(text, file):
     if file:
         print(text, file=file)
 
-
+"""
+The final stage of the training, evaluates the trained net using a validation set.
+The result will be written into a file with the following metrics:
+Accuracy, Recall and Precision
+:param net: the trained net
+:param validation_set: 30% of the input dataset, the set that will be evaluated on the trained net
+:param save_to: the path where the evaluation results will be written at
+:return
+"""
 def evaluate(net, validation_set, save_to=''):
     print('evaluation:')
     fp_total = 0
@@ -218,16 +222,13 @@ def evaluate(net, validation_set, save_to=''):
     else:
         file = None
     for data, label in validation_set:
-        output_f_tensor = net(get_5d_tensor(data))
+        output_f_tensor = net(get_5d_tensor(data).to('cuda',non_blocking=True))
         output_array = output_f_tensor[0, 0, :, :, :]
         label_array = label
-        fp = get_false_positives(output_array, label_array)
+        fp, tp, tn, fn = get_stats(output_array, label_array)
         fp_total += fp
-        fn = get_false_negatives(output_array, label_array)
         fn_total += fn
-        tp = get_true_positives(output_array, label_array)
         tp_total += tp
-        tn = get_true_negatives(output_array, label_array)
         tn_total += tn
         print_and_write_to_file('false positives:' + str(fp), file)
         print_and_write_to_file('false negatives:' + str(fn), file)
@@ -257,15 +258,14 @@ def evaluate(net, validation_set, save_to=''):
             'precision': precision, 'recall': recall, 'specificity': specificity, 'accuracy': accuracy}
 
 
+
 if __name__ == "__main__":
-    '''
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    image_size = 32
+    print(device)
     print('getting dataset')
     dataset = list(dataset_manager.get_dataset())
     dataset = dataset[:20]
-<<<<<<< HEAD
     training_set, validation_set = dataset_manager.split_training_validation_sets(dataset)
     net = train_net(training_set, epochs=0, learning_rate=0.01)
     print(evaluate(net, validation_set))
-'''
+

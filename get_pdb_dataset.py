@@ -1,3 +1,6 @@
+"""
+Crawls over the all alpha and a/b classes on https://scop.berkeley.edu/, and downloads .pdb files of proteins.
+"""
 import requests
 import lxml.html
 import urllib
@@ -7,6 +10,9 @@ import pickle
 
 PROJECT_PATH = 'C:\\Bioinformatics\\workshop'  # needs to be changed according to where we save the project
 
+"""
+parses the family and saves pdbs of the family
+"""
 
 def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
     print(family_link)
@@ -34,6 +40,9 @@ def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
                         break  # intersted only in up to one PDB entry of each protein
 
 
+"""
+parses the superfamily and saves a set of links to families. activates get_family on them.
+"""
 def get_superfamily(superfamily_link, save_path=PROJECT_PATH, create_dir=True):  # a link to a SCOPe superfamily
     r = requests.get(superfamily_link)
     doc = lxml.html.fromstring(r.content)
@@ -70,7 +79,9 @@ def get_superfamily(superfamily_link, save_path=PROJECT_PATH, create_dir=True): 
 
     return True  # let know that function finished successfully
 
-
+"""
+parses a class and saves a set of links to superfamilies. activates get_superfamily on them.
+"""
 def get_class(class_link, create_subdirs=True):  # a link to a SCOPe class
     r = requests.get(class_link)
     doc = lxml.html.fromstring(r.content)
@@ -117,7 +128,6 @@ def get_class(class_link, create_subdirs=True):  # a link to a SCOPe class
 
 
 if __name__ == '__main__':
-    # get_superfamily('https://scop.berkeley.edu/sunid=46689')
 
     # all alpha
     get_class('https://scop.berkeley.edu/sunid=46456')
