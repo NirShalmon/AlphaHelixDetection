@@ -5,17 +5,18 @@ import dataset_manager
 import model
 import numpy
 
-"""
-Gets a neural network and a 3d-list representing densities of a cryo-EM map.
-The function creates an output list of the same dimensions of the map, goes through almost disjoint 32x32x32 cubes of
-the given map with steps of 29 voxels, and actiates the prediction for the cube. The function saves the results of each
-voxel in its corresponding voxel in the output list. The value that is stored to a voxel is the value that was predicted
-to the voxel when it was as close to the center of cube as possible.
-:param net: A trained neural network
-:param protein_data: A 3d list containing the densities of voxels of a 3d cryo-EM map
-:return: a 3d-list with same dimensions as the given cryo-EM map, that contains the prediction of the net for each voxel
-"""
+
 def run_net_on_whole_protein(net, protein_data):
+    """
+    Gets a neural network and a 3d-list representing densities of a cryo-EM map.
+    The function creates an output list of the same dimensions of the map, goes through almost disjoint 32x32x32 cubes of
+    the given map with steps of 29 voxels, and actiates the prediction for the cube. The function saves the results of each
+    voxel in its corresponding voxel in the output list. The value that is stored to a voxel is the value that was predicted
+    to the voxel when it was as close to the center of cube as possible.
+    :param net: A trained neural network
+    :param protein_data: A 3d list containing the densities of voxels of a 3d cryo-EM map
+    :return: a 3d-list with same dimensions as the given cryo-EM map, that contains the prediction of the net for each voxel
+    """
     size = dataset_manager.dimensions(protein_data)
     label_data = [[[0 for j in range(size[2])] for i in range(size[1])] for k in range(size[0])]
     distance_from_cube_center = [[[10000000 for j in range(size[2])] for i in range(size[1])] for k in range(size[0])]
@@ -59,14 +60,14 @@ def calc_stats(output, label):
     print(f'tn: {tn}, tp: {tp}, fn: {fn}, fp: {fp}, recall: {tp / (tp + fn)}, precision: {tp / (tp + fp)}')
 
 
-"""
-loads a trained neural network, reads a cryo-EM map, runs the neural network on the cryo-EM map, applies a cutoff
-to the resulted map in order to round the values to either 0 or 1, and saves the resulted map to an .mrc file
-:param net_path: path of the trained neural network
-:param protein_mrc_path: path of the input cryo-EM map
-:param output_mrc_path: path to save the .mrc prediction
-"""
 def run_net_on_mrc_and_save(net_path, protein_mrc_path, output_mrc_path):
+    """
+    loads a trained neural network, reads a cryo-EM map, runs the neural network on the cryo-EM map, applies a cutoff
+    to the resulted map in order to round the values to either 0 or 1, and saves the resulted map to an .mrc file
+    :param net_path: path of the trained neural network
+    :param protein_mrc_path: path of the input cryo-EM map
+    :param output_mrc_path: path to save the .mrc prediction
+    """
     net = model.load_net(net_path)
     protein_data = dataset_manager.read_mrc(protein_mrc_path)
     label_data = run_net_on_whole_protein(net, protein_data)

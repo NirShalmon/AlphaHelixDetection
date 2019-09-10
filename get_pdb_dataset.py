@@ -10,11 +10,11 @@ import pickle
 
 PROJECT_PATH = 'C:\\Bioinformatics\\workshop'  # needs to be changed according to where we save the project
 
-"""
-parses the family and saves pdbs of the family
-"""
 
 def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
+    """
+    Parses the family and saves pdbs of the family
+    """
     print(family_link)
     species = set()
     r = requests.get(family_link)
@@ -40,10 +40,10 @@ def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
                         break  # intersted only in up to one PDB entry of each protein
 
 
-"""
-parses the superfamily and saves a set of links to families. activates get_family on them.
-"""
 def get_superfamily(superfamily_link, save_path=PROJECT_PATH, create_dir=True):  # a link to a SCOPe superfamily
+    """
+    Parses the superfamily and saves a set of links to families. activates get_family on them.
+    """
     r = requests.get(superfamily_link)
     doc = lxml.html.fromstring(r.content)
     superfamily_dir_created = False
@@ -79,10 +79,11 @@ def get_superfamily(superfamily_link, save_path=PROJECT_PATH, create_dir=True): 
 
     return True  # let know that function finished successfully
 
-"""
-parses a class and saves a set of links to superfamilies. activates get_superfamily on them.
-"""
+
 def get_class(class_link, create_subdirs=True):  # a link to a SCOPe class
+    """
+    Parses a class and saves a set of links to superfamilies. activates get_superfamily on them.
+    """
     r = requests.get(class_link)
     doc = lxml.html.fromstring(r.content)
     dir_name = doc.xpath("//title/text()")[0]
