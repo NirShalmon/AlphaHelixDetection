@@ -186,7 +186,7 @@ def train_net(training_set, epochs=1, learning_rate=0.01):
     """
     net = UNet(in_dim=1, out_dim=1, num_filters=8)
     net.to('cuda')
-    criterion = nn.L1Loss().to('cuda')
+    criterion = nn.KLDivLoss().to('cuda')
     # create your optimizer
     optimizer = optim.SGD(net.parameters(), lr=learning_rate)
     for epoch in range(epochs):
