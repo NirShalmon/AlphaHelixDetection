@@ -164,23 +164,6 @@ def get_stats(output, label):
     fn = torch.sum(confusion_vector == 0).item()
     return fp, tp, tn, fn
 
-    fp = 0
-    tp = 0
-    tn = 0
-    fn = 0
-    for i in range(32):
-        for j in range(32):
-            for k in range(32):
-                if output[i][j][k] > 0.5 and label[i][j][k] == 1:
-                    tp += 1
-                elif output[i][j][k] > 0.5 and label[i][j][k] == 0:
-                    fp += 1
-                elif output[i][j][k] <= 0.5 and label[i][j][k] == 1:
-                    fn += 1
-                else:
-                    tn += 1
-    return fp, tp, tn, fn
-
 
 def run_net_on_patch(net, patch_data):
     """
@@ -274,8 +257,8 @@ def evaluate(net, validation_set, save_to=''):
     for data, label in validation_set:
         output_f_tensor = net(get_5d_tensor(data).to('cuda', non_blocking=True))
         output_array = output_f_tensor[0, 0, :, :, :]
-        label_array = label
-        fp, tp, tn, fn = get_stats(output_array, label_array)
+        label.to('cuda')
+        fp, tp, tn, fn = get_stats(output_array, label)
         fp_total += fp
         fn_total += fn
         tp_total += tp
