@@ -69,9 +69,9 @@ def run_net_on_mrc_and_save(net_path, protein_mrc_path, output_mrc_path):
     :param output_mrc_path: path to save the .mrc prediction
     """
     net = model.load_net(net_path)
-    protein_data = dataset_manager.read_mrc(protein_mrc_path)
+    protein_data = torch.Tensor(dataset_manager.read_mrc(protein_mrc_path)).to('cuda')
     label_data = run_net_on_whole_protein(net, protein_data)
-    true_label_data = dataset_manager.read_mrc(protein_mrc_path.split('.')[0] + '_helix.mrc') # to delete later
+    true_label_data = torch.Tensor(dataset_manager.read_mrc(protein_mrc_path.split('.')[0] + '_helix.mrc')).to('cuda') # to delete later
     dataset_manager.apply_cutoff(true_label_data,0.25)
     calc_stats(label_data, true_label_data) # to delete later
     dataset_manager.save_mrc(label_data, output_mrc_path)
