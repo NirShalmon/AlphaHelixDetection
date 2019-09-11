@@ -156,6 +156,8 @@ def get_stats(output, label):
     :param label: a 3D mask/label
     :return fp,tp,tn,tf as explained above
     """
+    label.to('cuda')
+    output.to('cuda')
     output_binary = torch.ceil(output-0.5)
     confusion_vector = output_binary / label
     tp = torch.sum(confusion_vector == 1).item()
@@ -257,7 +259,7 @@ def evaluate(net, validation_set, save_to=''):
     for data, label in validation_set:
         output_f_tensor = net(get_5d_tensor(data).to('cuda', non_blocking=True))
         output_array = output_f_tensor[0, 0, :, :, :]
-        label.to('cuda')
+        label.to('cuda', non_blocking=True)
         fp, tp, tn, fn = get_stats(output_array, label)
         fp_total += fp
         fn_total += fn
