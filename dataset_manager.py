@@ -5,6 +5,7 @@ import random
 
 import mrcfile
 import os
+import torch
 
 
 def read_mrc(path):
@@ -42,17 +43,13 @@ def dimensions(protein_map):
 def apply_cutoff(protein_map, cutoff):
     """
     Converts a density map to a binary mask, by setting all cells of value >= cutoff to 1 and the rest to 0
+    Assumes 0<cutoff<1
     :param protein_map: The density map to apply the cutoff on
     :param cutoff: The lowest density value that will be converted to 1 in the map.
+    :returns: The protein mask after the cutoff
     """
-    size = dimensions(protein_map)
-    for i in range(size[0]):
-        for j in range(size[1]):
-            for k in range(size[2]):
-                if protein_map[i][j][k] >= cutoff:
-                    protein_map[i][j][k] = 1
-                else:
-                    protein_map[i][j][k] = 0
+    clamped_map = torch.clamp(protein_map, 0, 1)
+    return torch.ceil(clamped_map-cutoff)
 
 
 def get_cube(protein_map, size, i_start, j_start, k_start):
@@ -62,15 +59,11 @@ def get_cube(protein_map, size, i_start, j_start, k_start):
     Pads with zeroes if necessary
     :param protein_map: The protein's data as a 3D list.
     """
-    cube = [[[0 for j in range(size)] for i in range(size)] for k in range(size)]
+    cube = torch.empty(32, 32, 32)
     map_size = dimensions(protein_map)
-    # Iterate over the positions in the patch
-    for i_cur in range(i_start, size + i_start):
-        for j_cur in range(j_start, size + j_start):
-            for k_cur in range(k_start, size + k_start):
-                # Avoid overflow
-                if i_cur < map_size[0] and j_cur < map_size[1] and k_cur < map_size[2]:
-                    cube[i_cur - i_start][j_cur - j_start][k_cur - k_start] = protein_map[i_cur][j_cur][k_cur]
+    # The size of the part of the protein_map that fits in the patch without padding
+    unpadded_size = (min(32, map_size[0]-i_start), min(32, map_size[1]-j_start), min(32, map_size[2]-k_start))
+    cube[:unpadded_size[0], :unpadded_size[1], :unpadded_size[2]] = protein_map[i_start:i_start+unpadded_size[0], j_start:j_start+unpadded_size[1], k_start:k_start+unpadded_size[2]]
     return cube
 
 
@@ -85,14 +78,14 @@ def get_dataset(protein_path, max_protein_amount=-1):
     print('Reading dataset')
     protein_number = 0  # The index of the current protein in the for loop.
     for filename in os.listdir(protein_path):
-        if not filename.endswith('_helix.mrc'):  # Start by reading helix data.
+        if not filename.endswith('_helix.mrc') or filename == '1qvu_helix.mrc':  # Start by reading helix data.
             continue
         protein_number += 1
         if max_protein_amount != -1 and protein_number > max_protein_amount:
             break
         protein_name = filename[:filename.index('_')]  # The file name is protein-name_helix.mrc
-        protein_map = read_mrc(os.path.join(protein_path, protein_name + '.mrc'))  # Read the protein density map
-        helix_map = read_mrc(os.path.join(protein_path, filename))
+        protein_map = torch.Tensor(read_mrc(os.path.join(protein_path, protein_name + '.mrc')))  # Read the protein density map
+        helix_map = torch.Tensor(read_mrc(os.path.join(protein_path, filename)))
         apply_cutoff(helix_map, 0.25)
         sz = dimensions(protein_map)
         # Get patches of size 32x32x32 from the protein, with some overlap

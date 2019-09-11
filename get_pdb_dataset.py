@@ -32,7 +32,7 @@ def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
                                   "//a[contains(./@href,'https://scop.berkeley.edu/pdb/code=')][following::ul/@class='browse']"):
                 if not prot.xpath("following::td[2]//text()[contains(.,'Other') or contains(.,'DNA') or contains(., 'mutant') or contains(., 'automated')]"):
                     prot_id = prot.xpath("@href")[0][-4:]
-                    if prot_id not in proteins and not os.path.exists(os.path.join(dir_path, prot_id+'.pdb')) and prot_id != '1zn0' and prot_id != '1ae4' and prot_id != '1q05':  # if proteins hasn't already been downloaded, download it
+                    if prot_id not in proteins and not os.path.exists(os.path.join(dir_path, prot_id+'.pdb')) and prot_id not in ['1zno', '1ae4', '1q05', '1qvu']:  # if proteins hasn't already been downloaded, download it
                         print(prot_id)  # to be deleted later
                         urllib.request.urlretrieve('http://files.rcsb.org/download/' + prot_id + '.pdb', os.path.join(dir_path, prot_id+'.pdb'))
                         print('downloaded')

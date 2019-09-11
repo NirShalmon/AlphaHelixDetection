@@ -1,0 +1,198 @@
+false positives:tensor(0)
+false negatives:12800
+true positives:0
+true negatives:19968
+No true positives
+
+false positives:tensor(0)
+false negatives:2530
+true positives:0
+true negatives:30238
+No true positives
+
+false positives:tensor(0)
+false negatives:3971
+true positives:0
+true negatives:28797
+No true positives
+
+false positives:tensor(0)
+false negatives:14280
+true positives:0
+true negatives:18488
+No true positives
+
+false positives:tensor(0)
+false negatives:6115
+true positives:0
+true negatives:26653
+No true positives
+
+false positives:tensor(0)
+false negatives:1822
+true positives:0
+true negatives:30946
+No true positives
+
+false positives:tensor(0)
+false negatives:13130
+true positives:0
+true negatives:19620
+No true positives
+
+false positives:tensor(0)
+false negatives:14086
+true positives:0
+true negatives:18682
+No true positives
+
+false positives:tensor(0)
+false negatives:13128
+true positives:0
+true negatives:19594
+No true positives
+
+false positives:tensor(0)
+false negatives:7998
+true positives:0
+true negatives:24770
+No true positives
+
+false positives:tensor(0)
+false negatives:4088
+true positives:0
+true negatives:28680
+No true positives
+
+false positives:tensor(0)
+false negatives:440
+true positives:0
+true negatives:32328
+No true positives
+
+false positives:tensor(0)
+false negatives:5581
+true positives:0
+true negatives:27187
+No true positives
+
+false positives:tensor(0)
+false negatives:18068
+true positives:0
+true negatives:14700
+No true positives
+
+false positives:tensor(0)
+false negatives:3378
+true positives:0
+true negatives:29390
+No true positives
+
+false positives:tensor(0)
+false negatives:7617
+true positives:0
+true negatives:25151
+No true positives
+
+false positives:tensor(0)
+false negatives:13323
+true positives:0
+true negatives:19445
+No true positives
+
+false positives:tensor(0)
+false negatives:2655
+true positives:0
+true negatives:30113
+No true positives
+
+false positives:tensor(0)
+false negatives:1705
+true positives:0
+true negatives:31063
+No true positives
+
+false positives:tensor(0)
+false negatives:1586
+true positives:0
+true negatives:31182
+No true positives
+
+false positives:tensor(0)
+false negatives:10735
+true positives:0
+true negatives:22033
+No true positives
+
+false positives:tensor(0)
+false negatives:13757
+true positives:0
+true negatives:19011
+No true positives
+
+false positives:tensor(0)
+false negatives:5789
+true positives:0
+true negatives:26979
+No true positives
+
+false positives:tensor(0)
+false negatives:12149
+true positives:0
+true negatives:20619
+No true positives
+
+false positives:tensor(0)
+false negatives:150
+true positives:0
+true negatives:32618
+No true positives
+
+false positives:tensor(0)
+false negatives:3651
+true positives:0
+true negatives:29117
+No true positives
+
+false positives:tensor(0)
+false negatives:5756
+true positives:0
+true negatives:27012
+No true positives
+
+false positives:tensor(0)
+false negatives:5023
+true positives:0
+true negatives:27745
+No true positives
+
+false positives:tensor(0)
+false negatives:12169
+true positives:0
+true negatives:20599
+No true positives
+
+false positives:tensor(0)
+false negatives:3001
+true positives:0
+true negatives:29767
+No true positives
+
+false positives:tensor(0)
+false negatives:0
+true positives:0
+true negatives:32768
+No true positives
+
+false positives:tensor(0)
+false negatives:9948
+true positives:0
+true negatives:22820
+No true positives
+
+false positives:tensor(0)
+false negatives:12168
+true positives:0
+true negatives:20600
+No true positives
+
