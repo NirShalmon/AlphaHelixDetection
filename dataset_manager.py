@@ -86,7 +86,7 @@ def get_dataset(protein_path, max_protein_amount=-1):
         protein_name = filename[:filename.index('_')]  # The file name is protein-name_helix.mrc
         protein_map = torch.Tensor(read_mrc(os.path.join(protein_path, protein_name + '.mrc')))  # Read the protein density map
         helix_map = torch.Tensor(read_mrc(os.path.join(protein_path, filename)))
-        apply_cutoff(helix_map, 0.25)
+        helix_map = apply_cutoff(helix_map, 0.25)
         sz = dimensions(protein_map)
         # Get patches of size 32x32x32 from the protein, with some overlap
         for i in range(0, max(1, sz[0] - 32), 16):
