@@ -174,7 +174,7 @@ def run_net_on_patch(net, patch_data):
     """
     patch_tensor = get_5d_tensor(patch_data)
     label_tensor = net(patch_tensor)
-    return label_tensor[0, 0, :, :, :].detach().numpy()
+    return label_tensor[0, 0, :, :, :]
 
 
 def train_net(training_set, epochs=1, learning_rate=0.01):
@@ -221,8 +221,7 @@ def load_net(path):
     :param path: the path of the net
     :return net: the loaded net
     """
-    net = UNet(in_dim=1, out_dim=1, num_filters=8)
-    net.to('cuda')
+    net = UNet(in_dim=1, out_dim=1, num_filters=8).to('cuda')
     net.load_state_dict(torch.load(path))
     net.eval()
     return net

@@ -75,4 +75,4 @@ def run_net_on_mrc_and_save(net_path, protein_mrc_path, output_mrc_path):
     true_label_data = torch.Tensor(dataset_manager.read_mrc(protein_mrc_path.split('.')[0] + '_helix.mrc')).to('cuda') # to delete later
     dataset_manager.apply_cutoff(true_label_data,0.25)
     calc_stats(label_data, true_label_data) # to delete later
-    dataset_manager.save_mrc(label_data, output_mrc_path)
+    dataset_manager.save_mrc(label_data.detach().numpy(), output_mrc_path)
