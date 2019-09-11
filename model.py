@@ -158,10 +158,10 @@ def get_stats(output, label):
     """
     output_binary = torch.ceil(torch.clamp(output, 0.25, 0.75)-0.5)
     confusion_vector = output_binary / label
-    tp = torch.sum(confusion_vector == 1).item()
     fp = torch.sum(confusion_vector == float('inf')).item()
     tn = torch.sum(torch.isnan(confusion_vector)).item()
     fn = torch.sum(confusion_vector == 0).item()
+    tp = 2**15 - fp - tn - fn
     return fp, tp, tn, fn
 
 
