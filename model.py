@@ -156,7 +156,7 @@ def get_stats(output, label):
     :param label: a 3D mask/label
     :return fp,tp,tn,tf as explained above
     """
-    output_binary = torch.ceil(output-0.5)
+    output_binary = torch.ceil(torch.clamp(output, 0.25, 0.75)-0.5)
     confusion_vector = output_binary / label
     tp = torch.sum(confusion_vector == 1).item()
     fp = torch.sum(confusion_vector == float('inf')).item()
