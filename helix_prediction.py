@@ -4,6 +4,7 @@ Splits an input protein to 32x32x32 patches, runs the model on them and returns 
 import dataset_manager
 import model
 import numpy
+import torch
 
 
 def run_net_on_whole_protein(net, protein_data):
