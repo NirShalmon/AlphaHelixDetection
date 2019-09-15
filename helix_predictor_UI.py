@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Manages the user interface of the program.
+Editor: Nir Shalmon
 """
 import sys
 
