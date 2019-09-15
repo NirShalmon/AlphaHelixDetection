@@ -1,5 +1,6 @@
 """
 Contains the convolutional neural net model and functions to train, evaluate, load and save the model.
+Editor: Harel Oshri
 """
 import torch
 import torch.nn as nn
@@ -156,12 +157,12 @@ def get_stats(output, label):
     :param label: a 3D mask/label
     :return fp,tp,tn,tf as explained above
     """
-    output_binary = torch.ceil(torch.clamp(output, 0.25, 0.75)-0.5)
+    output_binary = dataset_manager.apply_cutoff(output, 0.5)
     confusion_vector = output_binary / label
-    fp = torch.sum(confusion_vector == float('inf')).item()
+    fp = torch.sum(confusion_vector == float('-inf')).item()
     tn = torch.sum(torch.isnan(confusion_vector)).item()
-    fn = torch.sum(confusion_vector == 0).item()
-    tp = 2**15 - fp - tn - fn
+    fn = torch.sum(confusion_vector == -0).item()
+    tp = torch.sum(confusion_vector == 1).item()
     return fp, tp, tn, fn
 
 
@@ -172,7 +173,7 @@ def run_net_on_patch(net, patch_data):
     :param patch_data:
     :return:
     """
-    patch_tensor = get_5d_tensor(patch_data)
+    patch_tensor = get_5d_tensor(patch_data).to('cuda')
     label_tensor = net(patch_tensor)
     return label_tensor[0, 0, :, :, :]
 
@@ -186,12 +187,11 @@ def train_net(training_set, epochs=1, learning_rate=0.01):
     """
     net = UNet(in_dim=1, out_dim=1, num_filters=8)
     net.to('cuda')
-    criterion = nn.KLDivLoss().to('cuda')
+    criterion = nn.L1Loss().to('cuda')
     # create your optimizer
-    optimizer = optim.SGD(net.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     for epoch in range(epochs):
         print(f'Epoch {epoch}')
-        print('Shuffeling dataset')
         random.shuffle(training_set)
         for label, data in training_set:
             optimizer.zero_grad()  # zero the gradient buffers
@@ -241,7 +241,7 @@ def evaluate(net, validation_set, save_to=''):
     :param net: the trained net
     :param validation_set: 30% of the input dataset, the set that will be evaluated on the trained net
     :param save_to: the path where the evaluation results will be written at
-    :return
+    :return: a dictionary of the metrics
     """
     print('evaluation:')
     fp_total = 0
@@ -262,31 +262,23 @@ def evaluate(net, validation_set, save_to=''):
         fn_total += fn
         tp_total += tp
         tn_total += tn
-        print_and_write_to_file('false positives:' + str(fp), file)
-        print_and_write_to_file('false negatives:' + str(fn), file)
-        print_and_write_to_file('true positives:' + str(tp), file)
-        print_and_write_to_file('true negatives:' + str(tn), file)
-        if tp == 0:
-            print_and_write_to_file("No true positives", file)
-        else:
-            print_and_write_to_file("recall: " + str(tp / (tp + fn)) + ", precision: " + str(tp / (tp + fp)), file)
-        print_and_write_to_file('', file)
     print_and_write_to_file('total false positives: ' + str(fp_total), file)
     print_and_write_to_file('total false negatives: ' + str(fn_total), file)
     print_and_write_to_file('total true positives: ' + str(tp_total), file)
     print_and_write_to_file('total true negatives: ' + str(tn_total), file)
-    print_and_write_to_file(
-        "recall: " + str(tp_total / (tp_total + fn_total)) + ", precision: " + str(tp_total / (tp_total + fp_total)),
-        file)
-    if save_to:
-        file.close()
     if tp_total == 0:
         precision = 0
         recall = 0
+        f1 = 0
+        accuracy = 0
     else:
-        precision = tp_total / (tp_total + fp_total)
         recall = tp_total / (tp_total + fn_total)
-    specificity = tn_total / (tn_total + fp_total)
-    accuracy = (tp_total + tn_total) / (tp_total + tn_total + fp_total + fn_total)
+        precision = tp_total / (tp_total + fp_total)
+        f1 = 2 * precision * recall / (precision + recall)
+        accuracy = (tp_total + tn_total) / (tp_total + tn_total + fp_total + fn_total)
+    print_and_write_to_file("recall: " + str(recall) + ", precision: " + str(precision), file)
+    print_and_write_to_file('F1 score: ' + str(2*recall*precision/(recall+precision)), file)
+    if save_to:
+        file.close()
     return {'fp': fp_total, 'fn': fn_total, 'tp': tp_total, 'tn': tn_total,
-            'precision': precision, 'recall': recall, 'specificity': specificity, 'accuracy': accuracy}
+            'precision': precision, 'recall': recall, 'accuracy': accuracy, 'f1': f1}

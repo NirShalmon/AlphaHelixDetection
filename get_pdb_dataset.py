@@ -1,5 +1,6 @@
 """
-Crawls over the all alpha and a/b classes on https://scop.berkeley.edu/, and downloads .pdb files of proteins.
+Crawles over all the alpha and a/b classes on https://scop.berkeley.edu/ and downloads .pdb files of proteins
+Editor: Dana Milan
 """
 import requests
 import lxml.html
@@ -8,12 +9,12 @@ import os
 import re
 import pickle
 
-PROJECT_PATH = 'C:\\Bioinformatics\\workshop'  # needs to be changed according to where we save the project
+PROJECT_PATH = os.getcwd()
 
 
 def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
     """
-    Parses the family and saves pdbs of the family
+    parses the family and saves pdbs of the family
     """
     print(family_link)
     species = set()
@@ -32,7 +33,7 @@ def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
                                   "//a[contains(./@href,'https://scop.berkeley.edu/pdb/code=')][following::ul/@class='browse']"):
                 if not prot.xpath("following::td[2]//text()[contains(.,'Other') or contains(.,'DNA') or contains(., 'mutant') or contains(., 'automated')]"):
                     prot_id = prot.xpath("@href")[0][-4:]
-                    if prot_id not in proteins and not os.path.exists(os.path.join(dir_path, prot_id+'.pdb')) and prot_id not in ['1zno', '1ae4', '1q05', '1qvu']:  # if proteins hasn't already been downloaded, download it
+                    if prot_id not in proteins and not os.path.exists(os.path.join(dir_path, prot_id+'.pdb')) and prot_id != '1zn0' and prot_id != '1ae4' and prot_id != '1q05':  # if proteins hasn't already been downloaded, download it
                         print(prot_id)  # to be deleted later
                         urllib.request.urlretrieve('http://files.rcsb.org/download/' + prot_id + '.pdb', os.path.join(dir_path, prot_id+'.pdb'))
                         print('downloaded')
@@ -40,9 +41,10 @@ def get_family(family_link, dir_path, proteins):  # link to a SCOPe family
                         break  # intersted only in up to one PDB entry of each protein
 
 
+
 def get_superfamily(superfamily_link, save_path=PROJECT_PATH, create_dir=True):  # a link to a SCOPe superfamily
     """
-    Parses the superfamily and saves a set of links to families. activates get_family on them.
+    parses the superfamily and saves a set of links to families. activates get_family on them.
     """
     r = requests.get(superfamily_link)
     doc = lxml.html.fromstring(r.content)
@@ -53,7 +55,7 @@ def get_superfamily(superfamily_link, save_path=PROJECT_PATH, create_dir=True): 
         srch = re.search('Family', spfamily_name)
     if not srch:
         return
-    spfamily_name = spfamily_name[srch.span()[0]:].replace(":", "-").replace('"', "_").replace("/", "-")
+    spfamily_name = spfamily_name[srch.span()[0]:].replace(":", "-").replace('"', "_").replace("/", "-").replace(" ", "_")
 
     # create a directory for the superfamily
     if create_dir:
@@ -82,12 +84,12 @@ def get_superfamily(superfamily_link, save_path=PROJECT_PATH, create_dir=True): 
 
 def get_class(class_link, create_subdirs=True):  # a link to a SCOPe class
     """
-    Parses a class and saves a set of links to superfamilies. activates get_superfamily on them.
+    parses a class and saves a set of links to superfamilies. activates get_superfamily on them.
     """
     r = requests.get(class_link)
     doc = lxml.html.fromstring(r.content)
     dir_name = doc.xpath("//title/text()")[0]
-    dir_name = dir_name[re.search('Class', dir_name).span()[0]:].replace(":","-").replace('"',"'").replace("/","-")
+    dir_name = dir_name[re.search('Class', dir_name).span()[0]:].replace(":","-").replace('"',"'").replace("/","-").replace(" ","_")
     save_path = os.path.join(PROJECT_PATH,dir_name)  # create a directory for class
     try:
         os.mkdir(save_path)

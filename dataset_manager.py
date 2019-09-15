@@ -1,11 +1,14 @@
 """
 Converts Cryo-EM maps (.mrc files) to datasets: training sets and validation sets.
+Editor: Nir Shalmon
 """
 import random
-
+import numpy
 import mrcfile
 import os
 import torch
+
+CUBE_SIZE = 32
 
 
 def read_mrc(path):
@@ -52,17 +55,17 @@ def apply_cutoff(protein_map, cutoff):
     return torch.ceil(clamped_map-cutoff)
 
 
-def get_cube(protein_map, size, i_start, j_start, k_start):
+def get_cube(protein_map, i_start, j_start, k_start):
     """
     Returns a size*size*size list of values from map, from protein_map[i_start][j_start][k_start]
     to protein_map[i_start+size-1][j_start+size-1][k_start+size-1].
     Pads with zeroes if necessary
     :param protein_map: The protein's data as a 3D list.
     """
-    cube = torch.empty(32, 32, 32)
+    cube = torch.empty(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
     map_size = dimensions(protein_map)
     # The size of the part of the protein_map that fits in the patch without padding
-    unpadded_size = (min(32, map_size[0]-i_start), min(32, map_size[1]-j_start), min(32, map_size[2]-k_start))
+    unpadded_size = (min(CUBE_SIZE, map_size[0]-i_start), min(CUBE_SIZE, map_size[1]-j_start), min(CUBE_SIZE, map_size[2]-k_start))
     cube[:unpadded_size[0], :unpadded_size[1], :unpadded_size[2]] = protein_map[i_start:i_start+unpadded_size[0], j_start:j_start+unpadded_size[1], k_start:k_start+unpadded_size[2]]
     return cube
 
@@ -78,22 +81,29 @@ def get_dataset(protein_path, max_protein_amount=-1):
     print('Reading dataset')
     protein_number = 0  # The index of the current protein in the for loop.
     for filename in os.listdir(protein_path):
-        if not filename.endswith('_helix.mrc') or filename == '1qvu_helix.mrc':  # Start by reading helix data.
-            continue
-        protein_number += 1
-        if max_protein_amount != -1 and protein_number > max_protein_amount:
-            break
-        protein_name = filename[:filename.index('_')]  # The file name is protein-name_helix.mrc
-        protein_map = torch.Tensor(read_mrc(os.path.join(protein_path, protein_name + '.mrc')))  # Read the protein density map
-        helix_map = torch.Tensor(read_mrc(os.path.join(protein_path, filename)))
-        helix_map = apply_cutoff(helix_map, 0.25)
-        sz = dimensions(protein_map)
-        # Get patches of size 32x32x32 from the protein, with some overlap
-        for i in range(0, max(1, sz[0] - 32), 16):
-            for j in range(0, max(1, sz[1] - 32), 16):
-                for k in range(0, max(1, sz[2] - 32), 16):
-                    yield (get_cube(protein_map, 32, i, j, k), get_cube(helix_map, 32, i, j, k))
-
+            if not filename.endswith('_helix.mrc'):  # Start by reading helix data.
+                continue
+            protein_number += 1
+            if max_protein_amount != -1 and protein_number > max_protein_amount:
+                break
+            try:  # Makes the function work even if some of the dataset is in bad format
+                protein_name = filename[:filename.index('_')]  # The file name is protein-name_helix.mrc
+                protein_map = torch.Tensor(read_mrc(os.path.join(protein_path, protein_name + '.mrc')))  # Read the protein density map
+                helix_map = torch.Tensor(read_mrc(os.path.join(protein_path, filename)))
+                helix_map = apply_cutoff(helix_map, 0.25)
+                sz = dimensions(protein_map)
+                if sz != dimensions(helix_map):  # Make sure the input and label are of the same size
+                    continue
+                # Get patches of size 32x32x32 from the protein, with some overlap
+                for i in range(0, max(1, sz[0] - CUBE_SIZE), CUBE_SIZE//2):
+                    for j in range(0, max(1, sz[1] - CUBE_SIZE), CUBE_SIZE//2):
+                        for k in range(0, max(1, sz[2] - CUBE_SIZE), CUBE_SIZE//2):
+                            labels_cube = get_cube(helix_map, i, j, k)
+                            positives_percentage = torch.sum(labels_cube == 1).item() / (CUBE_SIZE ** 3)
+                            if positives_percentage > 0.15 or random.random() < 0.14: #only take 1/7 out of negative cubes
+                                yield (get_cube(protein_map, i, j, k), labels_cube)
+            except:
+                pass
 
 def split_training_validation_sets(dataset):
     """

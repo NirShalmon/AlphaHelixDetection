@@ -1,5 +1,6 @@
 """
 Script that runs inside Chimera and synthesizes Cryo-EM map and helix mask for proteins (.pdb files)
+Editor: Nir Shalmon
 """
 
 from chimera import runCommand as rc
